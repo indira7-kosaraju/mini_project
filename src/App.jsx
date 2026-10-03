@@ -8,6 +8,7 @@ import MemberSignup from './Components/Signup/MemberSignup';
 import TrainerSignup from './Components/Signup/TrainerSignup';
 import Planspage from './Components/Planspage/planspage';
 import ProtectedRoute from './Components/ProtectedRoute/ProtectedRoute';
+import AdminRoute from './Components/ProtectedRoute/AdminRoute';
 import { Toaster } from 'react-hot-toast';
 import MemberSettings from './Components/Settings/MemberSettings';
 import TrainerSettings from './Components/Settings/TrainerSettings';
@@ -18,7 +19,6 @@ import AdminCoupons from './Components/Admin/AdminCoupons';
 
 function App() {
   const isAuthenticated = localStorage.getItem('token');
-  const isAdminAuthenticated = localStorage.getItem('adminToken');
 
   return (
     <Router basename="/mini_project">
@@ -123,27 +123,27 @@ function App() {
         <Route 
           path="/admin/login" 
           element={
-            isAdminAuthenticated ? 
-            <Navigate to="/admin/dashboard" /> : 
-            <AdminLogin />
+            <AdminRoute guestOnly>
+              <AdminLogin />
+            </AdminRoute>
           } 
         />
 
         <Route 
           path="/admin/dashboard" 
           element={
-            isAdminAuthenticated ? 
-            <AdminDashboard /> : 
-            <Navigate to="/admin/login" />
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
           } 
         />
 
         <Route 
           path="/admin/coupons" 
           element={
-            isAdminAuthenticated ? 
-            <AdminCoupons /> : 
-            <Navigate to="/admin/login" />
+            <AdminRoute>
+              <AdminCoupons />
+            </AdminRoute>
           } 
         />
       </Routes>
