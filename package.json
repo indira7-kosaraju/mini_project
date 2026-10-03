@@ -2,7 +2,7 @@
   "name": "fitness",
   "version": "0.0.0",
   "private": true,
-  "homepage": "https://indukosaraju7-png.github.io/mini_project",
+  "homepage": "https://indira7-kosaraju.github.io/mini_project",
   "dependencies": {
     "autoprefixer": "10.4.17",
     "framer-motion": "6.5.1",
@@ -20,7 +20,7 @@
     "zustand": "5.0.3"
   },
   "scripts": {
-    "predeploy": "npm run build",
+    "predeploy": "npm run build && cp build/index.html build/404.html",
     "deploy": "gh-pages -d build",
     "start": "react-scripts start",
     "build": "react-scripts build",
