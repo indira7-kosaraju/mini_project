@@ -4,6 +4,7 @@ import { Check, ArrowRight, Tag } from "lucide-react";
 import { getMemberProfile, activateMembership, validateCoupon } from "../../services/mockApi";
 import ProfileDropdown from "../ProfileDropdown/ProfileDropdown";
 import toast from "react-hot-toast";
+import { plansData } from "../../data/plansData";
 
 const Planspage = () => {
   const [loading, setLoading] = useState(false);
@@ -34,42 +35,7 @@ const Planspage = () => {
     }
   };
 
-  const plans = [
-    {
-      name: "Basic Plan",
-      price: 2500,
-      features: [
-        "Access to gym equipment",
-        "Basic workout plans",
-        "Locker room access",
-        "1 free trainer session",
-        "Access to fitness classes",
-      ],
-    },
-    {
-      name: "Premium Plan",
-      price: 3000,
-      features: [
-        "All Basic Plan features",
-        "3 trainer sessions/month",
-        "Nutrition consultation",
-        "Access to premium classes",
-        "Sauna & spa access",
-      ],
-      popular: true,
-    },
-    {
-      name: "Pro Plan",
-      price: 4500,
-      features: [
-        "All Premium Plan features",
-        "Unlimited trainer sessions",
-        "Personalized workout plans",
-        "Priority booking",
-        "Exclusive member events",
-      ],
-    },
-  ];
+  const plans = plansData;
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) {
@@ -174,7 +140,7 @@ const Planspage = () => {
               </h3>
 
               <div className="text-3xl font-bold text-orange-500 mb-4">
-                ₹{finalPrice}
+                ₹{finalPrice.toLocaleString('en-IN')}
                 <span className="text-sm text-gray-400"> / month</span>
               </div>
 

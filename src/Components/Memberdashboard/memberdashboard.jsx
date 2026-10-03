@@ -19,6 +19,7 @@ import "./styles.css";
 import ProfileDropdown from "../ProfileDropdown/ProfileDropdown";
 import toast from 'react-hot-toast';
 import UpgradePlanModal from "../UpgradePlanModal/UpgradePlanModal";
+import { plansData } from "../../data/plansData";
 
 const MemberDashboard = () => {
     const [trainers, setTrainers] = useState([]);
@@ -40,41 +41,7 @@ const MemberDashboard = () => {
     const [showPlanModal, setShowPlanModal] = useState(false);
     const [members, setMembers] = useState([]);
 
-    const plans = [
-        {
-            name: "Basic Plan",
-            price: 6000,
-            features: [
-                "Access to gym equipment",
-                "Basic workout plans",
-                "Locker room access",
-                "1 free trainer session",
-                "Access to fitness classes"
-            ]
-        },
-        {
-            name: "Premium Plan",
-            price: 8000,
-            features: [
-                "All Basic Plan features",
-                "3 trainer sessions/month",
-                "Nutrition consultation",
-                "Access to premium classes",
-                "Sauna & spa access"
-            ]
-        },
-        {
-            name: "Pro Plan",
-            price: 12000,
-            features: [
-                "All Premium Plan features",
-                "Unlimited trainer sessions",
-                "Personalized workout plans",
-                "Priority booking",
-                "Exclusive member events"
-            ]
-        }
-    ];
+    const plans = plansData;
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -472,7 +439,7 @@ const MemberDashboard = () => {
                                                 {trainer.experience} years experience
                                             </p>
                                             <p className="text-white font-semibold mt-2">
-                                                ${trainer.feePerMonth}/month
+                                                ₹{trainer.feePerMonth}/month
                                             </p>
                                             <div className="mt-4 flex space-x-3">
                                                 {selectedTrainer?._id === trainer._id ? (

@@ -40,12 +40,12 @@ const Plans = () => {
                                 {plan.icon}
                             </div>
 
-                            <h3 className="text-2xl font-bold text-white mb-4">
+                            <h3 className="text-2xl font-bold text-white mb-4 uppercase">
                                 {plan.name}
                             </h3>
 
                             <div className="text-3xl font-bold text-orange-500 mb-6">
-                                Rs.{plan.price}
+                                ₹{plan.price.toLocaleString('en-IN')}
                                 <span className="text-sm text-gray-400">/month</span>
                             </div>
 

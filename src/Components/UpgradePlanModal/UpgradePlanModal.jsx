@@ -12,7 +12,7 @@ const UpgradePlanModal = ({ isOpen, onClose, plans, onSelectPlan }) => {
                     {plans.map((plan) => (
                         <div key={plan.name} className="border p-4 rounded-lg mb-4">
                             <h3 className="text-lg font-bold">{plan.name}</h3>
-                            <p className="text-gray-700">Price: ₹{plan.price}</p>
+                            <p className="text-gray-700">Price: ₹{plan.price.toLocaleString('en-IN')}</p>
                             <button
                                 onClick={() => onSelectPlan(plan)}
                                 className="mt-2 bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition duration-200"
