@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Edit, Trash2, Plus, LogOut, Search } from 'lucide-react';
-import { API_ENDPOINTS, API_BASE_URL } from '../../config.js';
+import {
+    adminGetMembers,
+    adminGetTrainers,
+    adminUpdateMember,
+    adminUpdateTrainer,
+    adminDeleteMember,
+    adminDeleteTrainer
+} from '../../services/mockApi';
 import toast from 'react-hot-toast';
 
 const AdminDashboard = () => {
@@ -22,45 +29,13 @@ const AdminDashboard = () => {
         try {
             setLoading(true);
             
-            // Fetch members data
-            const membersResponse = await fetch(API_ENDPOINTS.ADMIN_MEMBERS, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                }
-            });
-            
-            // Fetch trainers data
-            const trainersResponse = await fetch(API_ENDPOINTS.ADMIN_TRAINERS, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                }
-            });
-            
-            if (membersResponse.ok && trainersResponse.ok) {
-                const membersData = await membersResponse.json();
-                const trainersData = await trainersResponse.json();
-                
-                setMembers(membersData);
-                setTrainers(trainersData);
-            } else {
-                // If API endpoints don't exist yet, use sample data
-                console.warn('Using sample data as API endpoints may not be available');
-                
-                // Sample members data
-                setMembers([
-                    { _id: '1', username: 'john_doe', email: 'john@example.com', phone: '1234567890', age: 28, gender: 'male', membership: { status: 'active', type: 'Premium Plan' } },
-                    { _id: '2', username: 'jane_smith', email: 'jane@example.com', phone: '9876543210', age: 24, gender: 'female', membership: { status: 'inactive', type: null } },
-                    { _id: '3', username: 'mike_johnson', email: 'mike@example.com', phone: '5551234567', age: 32, gender: 'male', membership: { status: 'active', type: 'Basic Plan' } },
-                    { _id: '4', username: 'sarah_williams', email: 'sarah@example.com', phone: '7778889999', age: 27, gender: 'female', membership: { status: 'active', type: 'Pro Plan' } }
-                ]);
-                
-                // Sample trainers data
-                setTrainers([
-                    { _id: '1', username: 'coach_alex', email: 'alex@example.com', phone: '1112223333', fullName: 'Alex Johnson', age: 35, gender: 'male', specialization: 'Strength Training', experience: 8, feePerMonth: 3000 },
-                    { _id: '2', username: 'coach_emma', email: 'emma@example.com', phone: '4445556666', fullName: 'Emma Wilson', age: 29, gender: 'female', specialization: 'Yoga', experience: 5, feePerMonth: 2500 },
-                    { _id: '3', username: 'coach_david', email: 'david@example.com', phone: '7778889999', fullName: 'David Brown', age: 40, gender: 'male', specialization: 'Cardio', experience: 12, feePerMonth: 3500 }
-                ]);
-            }
+            const [membersData, trainersData] = await Promise.all([
+                adminGetMembers(),
+                adminGetTrainers()
+            ]);
+
+            setMembers(membersData);
+            setTrainers(trainersData);
         } catch (error) {
             console.error('Error fetching data:', error);
             toast.error('Failed to load data');
@@ -84,33 +59,14 @@ const AdminDashboard = () => {
     const handleDelete = async (id, type) => {
         if (window.confirm(`Are you sure you want to delete this ${type}?`)) {
             try {
-                const endpoint = type === 'member' 
-                    ? `${API_BASE_URL}/api/admin/members/${id}` 
-                    : `${API_BASE_URL}/api/admin/trainers/${id}`;
-                
-                const response = await fetch(endpoint, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                    }
-                });
-                
-                if (response.ok) {
-                    if (type === 'member') {
-                        setMembers(members.filter(member => member._id !== id));
-                    } else {
-                        setTrainers(trainers.filter(trainer => trainer._id !== id));
-                    }
-                    toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} deleted successfully`);
+                if (type === 'member') {
+                    await adminDeleteMember(id);
+                    setMembers(members.filter(member => member._id !== id));
                 } else {
-                    // If API endpoint doesn't exist yet, simulate deletion
-                    if (type === 'member') {
-                        setMembers(members.filter(member => member._id !== id));
-                    } else {
-                        setTrainers(trainers.filter(trainer => trainer._id !== id));
-                    }
-                    toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} deleted successfully`);
+                    await adminDeleteTrainer(id);
+                    setTrainers(trainers.filter(trainer => trainer._id !== id));
                 }
+                toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} deleted successfully`);
             } catch (error) {
                 console.error('Error deleting user:', error);
                 toast.error(`Failed to delete ${type}`);
@@ -124,47 +80,20 @@ const AdminDashboard = () => {
         if (currentUser.username) {
             try {
                 const isTrainer = activeTab === 'trainers';
-                const endpoint = isTrainer 
-                    ? `${API_BASE_URL}/api/admin/trainers/${currentUser._id}` 
-                    : `${API_BASE_URL}/api/admin/members/${currentUser._id}`;
-                
-                const response = await fetch(endpoint, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                    },
-                    body: JSON.stringify(currentUser)
-                });
-                
-                if (response.ok) {
-                    if (isTrainer) {
-                        setTrainers(trainers.map(trainer => 
-                            trainer._id === currentUser._id ? currentUser : trainer
-                        ));
-                    } else {
-                        setMembers(members.map(member => 
-                            member._id === currentUser._id ? currentUser : member
-                        ));
-                    }
-                    
-                    setShowEditModal(false);
-                    toast.success('User updated successfully');
+                if (isTrainer) {
+                    const updated = await adminUpdateTrainer(currentUser._id, currentUser);
+                    setTrainers(trainers.map(trainer =>
+                        trainer._id === currentUser._id ? updated : trainer
+                    ));
                 } else {
-                    // If API endpoint doesn't exist yet, simulate update
-                    if (isTrainer) {
-                        setTrainers(trainers.map(trainer => 
-                            trainer._id === currentUser._id ? currentUser : trainer
-                        ));
-                    } else {
-                        setMembers(members.map(member => 
-                            member._id === currentUser._id ? currentUser : member
-                        ));
-                    }
-                    
-                    setShowEditModal(false);
-                    toast.success('User updated successfully');
+                    const updated = await adminUpdateMember(currentUser._id, currentUser);
+                    setMembers(members.map(member =>
+                        member._id === currentUser._id ? updated : member
+                    ));
                 }
+
+                setShowEditModal(false);
+                toast.success('User updated successfully');
             } catch (error) {
                 console.error('Error updating user:', error);
                 toast.error('Failed to update user');

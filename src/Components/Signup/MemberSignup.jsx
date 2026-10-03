@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_ENDPOINTS } from "../../config.js";
+import { signupMember } from "../../services/mockApi";
 import toast from 'react-hot-toast';
 
 const MemberSignup = () => {
@@ -34,33 +34,18 @@ const MemberSignup = () => {
         }
 
         try {
-            const response = await fetch(API_ENDPOINTS.MEMBER_SIGNUP, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    ...formData,
-                    userType: "member"
-                }),
-            });
+            const data = await signupMember(formData);
 
-            const data = await response.json();
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('userType', 'member');
+            localStorage.setItem('username', data.user.username);
+            localStorage.setItem('userId', data.user._id);
 
-            if (response.ok) {
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('userType', 'member');
-                localStorage.setItem('username', data.user.username);
-                localStorage.setItem('userId', data.user._id);
-                
-                toast.success("Registration successful!");
-                navigate("/planspage");
-            } else {
-                toast.error(data.message || "Signup failed");
-            }
+            toast.success("Registration successful!");
+            navigate("/planspage");
         } catch (error) {
             console.error("Error:", error);
-            toast.error("Something went wrong");
+            toast.error(error.message || "Signup failed");
         } finally {
             setLoading(false);
         }

@@ -1,1 +1,0 @@
-import{u as r}from"./helpers-DWGVlOV6-1.js";import"./js-Cz0CWeBA-1.js";import"./init-user-CLXATX98-1.js";document.querySelector("#post-purchase-welcome-modal")||new URL(window.location.href).searchParams.has("purchase_confirmation")&&r("purchase_confirmation");

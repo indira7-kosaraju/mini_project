@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { signupTrainer, fileToDataUrl } from "../../services/mockApi";
 
 const TrainerSignup = () => {
     const [formData, setFormData] = useState({
@@ -43,28 +44,19 @@ const TrainerSignup = () => {
         }
 
         try {
-            const formDataToSend = new FormData();
-            Object.keys(formData).forEach(key => {
-                formDataToSend.append(key, formData[key]);
-            });
-            formDataToSend.append('userType', 'trainer');
+            const photo = await fileToDataUrl(formData.photo);
+            const data = await signupTrainer({ ...formData, photo });
 
-            const response = await fetch("http://localhost:5000/api/trainers/signup", {
-                method: "POST",
-                body: formDataToSend,
-            });
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('userType', 'trainer');
+            localStorage.setItem('username', data.user.username);
+            localStorage.setItem('userId', data.user._id);
+            localStorage.setItem('trainerName', data.user.fullName);
 
-            const data = await response.json();
-
-            if (response.ok) {
-                console.log("Trainer signup successful:", data);
-                navigate("/trainerdashboard");
-            } else {
-                alert(data.message || "Signup failed");
-            }
+            navigate("/trainerdashboard");
         } catch (error) {
             console.error("Error:", error);
-            alert("Something went wrong");
+            alert(error.message || "Signup failed");
         }
     };
 

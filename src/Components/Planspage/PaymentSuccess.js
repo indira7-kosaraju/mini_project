@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { activateMembership } from "../../services/mockApi";
 
 const PaymentSuccess = () => {
     const navigate = useNavigate();
@@ -7,14 +8,7 @@ const PaymentSuccess = () => {
     const plan = query.get("plan");
 
     useEffect(() => {
-        fetch("http://localhost:5000/api/members/activate-plan", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-            body: JSON.stringify({ plan }),
-        }).then(() => {
+        activateMembership(plan).then(() => {
             navigate("/memberdashboard");
         });
     }, []);

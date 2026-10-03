@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Edit, Trash2, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getCoupons, createCoupon, updateCoupon, deleteCoupon } from '../../services/mockApi';
 
 const AdminCoupons = () => {
     const [coupons, setCoupons] = useState([]);
@@ -23,33 +24,11 @@ const AdminCoupons = () => {
     const fetchCoupons = async () => {
         try {
             setLoading(true);
-            const response = await fetch('http://localhost:5000/api/admin/coupons', {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                }
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                setCoupons(data);
-            } else {
-                // If API endpoint doesn't exist yet, use sample data
-                console.warn('Using sample coupon data as API endpoint may not be available');
-                setCoupons([
-                    { _id: '1', code: 'SUMMER25', discount: 25, expiryDate: '2025-08-31', isActive: true },
-                    { _id: '2', code: 'WELCOME10', discount: 10, expiryDate: '2025-12-31', isActive: true },
-                    { _id: '3', code: 'FLASH50', discount: 50, expiryDate: '2025-06-30', isActive: false }
-                ]);
-            }
+            const data = await getCoupons();
+            setCoupons(data);
         } catch (error) {
             console.error('Error fetching coupons:', error);
             toast.error('Failed to load coupons');
-            // Use sample data as fallback
-            setCoupons([
-                { _id: '1', code: 'SUMMER25', discount: 25, expiryDate: '2025-08-31', isActive: true },
-                { _id: '2', code: 'WELCOME10', discount: 10, expiryDate: '2025-12-31', isActive: true },
-                { _id: '3', code: 'FLASH50', discount: 50, expiryDate: '2025-06-30', isActive: false }
-            ]);
         } finally {
             setLoading(false);
         }
@@ -91,28 +70,12 @@ const AdminCoupons = () => {
     const handleDeleteCoupon = async (id) => {
         if (window.confirm('Are you sure you want to delete this coupon?')) {
             try {
-                const response = await fetch(`http://localhost:5000/api/admin/coupons/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                    }
-                });
-                
-                if (response.ok) {
-                    setCoupons(coupons.filter(coupon => coupon._id !== id));
-                    toast.success('Coupon deleted successfully');
-                } else {
-                    // If API endpoint doesn't exist yet, simulate deletion
-                    setCoupons(coupons.filter(coupon => coupon._id !== id));
-                    toast.success('Coupon deleted successfully');
-                }
+                await deleteCoupon(id);
+                setCoupons(coupons.filter(coupon => coupon._id !== id));
+                toast.success('Coupon deleted successfully');
             } catch (error) {
                 console.error('Error deleting coupon:', error);
                 toast.error('Failed to delete coupon');
-                
-                // Simulate successful deletion for demo purposes
-                setCoupons(coupons.filter(coupon => coupon._id !== id));
-                toast.success('Coupon deleted successfully');
             }
         }
     };
@@ -137,72 +100,21 @@ const AdminCoupons = () => {
 
         try {
             if (isEditing) {
-                const response = await fetch(`http://localhost:5000/api/admin/coupons/${currentCoupon._id}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                    },
-                    body: JSON.stringify(currentCoupon)
-                });
-                
-                if (response.ok) {
-                    const updatedCoupon = await response.json();
-                    setCoupons(coupons.map(coupon => 
-                        coupon._id === currentCoupon._id ? updatedCoupon : coupon
-                    ));
-                    toast.success('Coupon updated successfully');
-                } else {
-                    // If API endpoint doesn't exist yet, simulate update
-                    setCoupons(coupons.map(coupon => 
-                        coupon._id === currentCoupon._id ? currentCoupon : coupon
-                    ));
-                    toast.success('Coupon updated successfully');
-                }
+                const updatedCoupon = await updateCoupon(currentCoupon._id, currentCoupon);
+                setCoupons(coupons.map(coupon =>
+                    coupon._id === currentCoupon._id ? updatedCoupon : coupon
+                ));
+                toast.success('Coupon updated successfully');
             } else {
-                const response = await fetch('http://localhost:5000/api/admin/coupons', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                    },
-                    body: JSON.stringify(currentCoupon)
-                });
-                
-                if (response.ok) {
-                    const newCoupon = await response.json();
-                    setCoupons([...coupons, newCoupon]);
-                    toast.success('Coupon added successfully');
-                } else {
-                    // If API endpoint doesn't exist yet, simulate adding
-                    const newCoupon = {
-                        ...currentCoupon,
-                        _id: Date.now().toString() // Simple way to generate unique ID
-                    };
-                    setCoupons([...coupons, newCoupon]);
-                    toast.success('Coupon added successfully');
-                }
+                const newCoupon = await createCoupon(currentCoupon);
+                setCoupons([...coupons, newCoupon]);
+                toast.success('Coupon added successfully');
             }
-            
+
             setShowModal(false);
         } catch (error) {
             console.error('Error saving coupon:', error);
-            toast.error('Failed to save coupon');
-            
-            // Simulate successful operation for demo purposes
-            if (isEditing) {
-                setCoupons(coupons.map(coupon => 
-                    coupon._id === currentCoupon._id ? currentCoupon : coupon
-                ));
-            } else {
-                const newCoupon = {
-                    ...currentCoupon,
-                    _id: Date.now().toString()
-                };
-                setCoupons([...coupons, newCoupon]);
-            }
-            setShowModal(false);
-            toast.success(isEditing ? 'Coupon updated successfully' : 'Coupon added successfully');
+            toast.error(error.message || 'Failed to save coupon');
         }
     };
 

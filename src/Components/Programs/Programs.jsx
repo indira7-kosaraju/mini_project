@@ -1,8 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { programsData } from '../../data/programsData';
 import { ArrowRight } from 'lucide-react';
 
 const Programs = () => {
+    const navigate = useNavigate();
+
     return (
         <div className="bg-gray-900 py-20 px-4" id="programs">
             <div className="max-w-7xl mx-auto">
@@ -38,7 +41,9 @@ const Programs = () => {
                                 {program.details}
                             </p>
 
-                            <button className="flex items-center gap-2 text-white group-hover:text-orange-500 transition-colors duration-300">
+                            <button
+                                onClick={() => navigate('/member-signup')}
+                                className="flex items-center gap-2 text-white group-hover:text-orange-500 transition-colors duration-300">
                                 <span>Join Now</span>
                                 <ArrowRight className="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" />
                             </button>

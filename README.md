@@ -1,47 +1,49 @@
-# Fitness Club Management System
+# Fitness Club Management System (Frontend Only)
 
-A comprehensive fitness club management system that allows members to manage their workout and diet plans, select trainers, and schedule events. The application provides a seamless experience for both members and trainers, ensuring effective communication and management of fitness goals.
+A React frontend for a fitness club: members pick plans and trainers, view workout and diet plans, and keep a personal event calendar. Trainers manage plans for their clients, and admins manage users and coupons.
+
+This is a **frontend-only** project. There is no backend or database. All data is mock data stored in the browser's `localStorage`, and payments are a demo only (no real payment processing).
 
 ## Features
 
-- **User Authentication**: Secure login and registration for both members and trainers.
-- **Trainer Selection**: Members can select their preferred trainers based on specialization and experience.
-- **Workout Plans**: Trainers can create and manage personalized workout plans for their clients.
-- **Diet Plans**: Trainers can create and manage diet plans tailored to individual member needs.
-- **Event Management**: Members can create, update, and delete events in their personal calendars.
-- **Payment Integration**: Secure payment processing through Razorpay for membership plans.
-- **Profile Management**: Users can update their profiles, including personal information and profile pictures.
-- **Role-Based Access Control**: Different access levels for members and trainers to ensure data security.
+- **Demo authentication**: login and registration for members and trainers, stored in localStorage.
+- **Trainer selection**: browse, search and filter mock trainers.
+- **Workout & diet plans**: trainers create and edit plans; members view them.
+- **Event calendar**: members add, edit and delete events (localStorage).
+- **Membership plans**: demo checkout with coupon codes.
+- **Profile settings** for members and trainers.
+- **Admin panel**: manage members, trainers and coupons.
 
-## Installation Steps
+## Demo accounts
 
-1. **Clone the Repository**:
-   ```bash
-   git clone https://github.com/kstubhieeee/fitness.git
-   ```
-   ```
-   cd fitness
-   ```
+| Role    | Username / Email   | Password     |
+|---------|--------------------|--------------|
+| Member  | `testmember`       | `test123`    |
+| Member  | `john_doe` (has trainer, workout & diet plan) | `member123` |
+| Trainer | `coach_alex`       | `trainer123` |
+| Admin   | `e@e.com`          | `123456`     |
 
-2. **Install Dependencies**:
-   
-     ```bash
-     npm install
-     ```
-   
-    
+Demo coupons: `SUMMER25`, `WELCOME10`, `FLASH50`.
 
-3. **Run the Server**:
-   Open a new terminal and run:
-   ```bash
-   nodemon server.js
-   ```
+To reset all demo data, clear the site's localStorage in your browser's dev tools.
 
-4. **Run the Client** :
-   ```bash
-   npm start
-   ```
+## Run locally
 
-5. **Access the Application**:
-   - Open your browser and navigate to `http://localhost:5000` for the server or `http://localhost:3000` for the client
- 
+```bash
+npm install
+npm start
+```
+
+Open http://localhost:3000/mini_project
+
+## Production build
+
+```bash
+npm run build
+```
+
+## Deploy to GitHub Pages
+
+```bash
+npm run deploy
+```

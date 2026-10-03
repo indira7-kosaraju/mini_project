@@ -25,7 +25,7 @@ const AdminLogin = () => {
 
         if (formData.email === adminEmail && formData.password === adminPassword) {
             // Set admin token in localStorage
-            localStorage.setItem('adminToken', 'admin-jwt-token');
+            localStorage.setItem('adminToken', 'admin-demo-token');
             localStorage.setItem('adminEmail', formData.email);
             
             // Use setTimeout to ensure state updates before navigation

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Save, ArrowLeft } from 'lucide-react';
-import { API_ENDPOINTS } from '../../config.js';
+import { getTrainerProfile, updateTrainerProfile } from '../../services/mockApi';
 import toast from 'react-hot-toast';
 
 const TrainerSettings = () => {
@@ -27,16 +27,8 @@ const TrainerSettings = () => {
 
     const fetchProfile = async () => {
         try {
-            const response = await fetch(API_ENDPOINTS.TRAINER_PROFILE, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                setProfile(data);
-            }
+            const data = await getTrainerProfile();
+            setProfile(data);
         } catch (error) {
             console.error('Error fetching profile:', error);
             toast.error('Failed to load profile');
@@ -58,23 +50,12 @@ const TrainerSettings = () => {
         setLoading(true);
 
         try {
-            const response = await fetch(API_ENDPOINTS.TRAINER_PROFILE, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify(profile)
-            });
-
-            if (response.ok) {
-                toast.success('Profile updated successfully');
-            } else {
-                throw new Error('Failed to update profile');
-            }
+            const data = await updateTrainerProfile(profile);
+            setProfile(data);
+            toast.success('Profile updated successfully');
         } catch (error) {
             console.error('Error updating profile:', error);
-            toast.error('Failed to update profile');
+            toast.error(error.message || 'Failed to update profile');
         } finally {
             setLoading(false);
         }

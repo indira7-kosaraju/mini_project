@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, ArrowRight, Tag } from "lucide-react";
-import { API_ENDPOINTS } from "../../config.js";
+import { getMemberProfile, activateMembership, validateCoupon } from "../../services/mockApi";
 import ProfileDropdown from "../ProfileDropdown/ProfileDropdown";
 import toast from "react-hot-toast";
 
@@ -23,18 +23,11 @@ const Planspage = () => {
 
   const fetchProfile = async () => {
     try {
-      const res = await fetch(API_ENDPOINTS.MEMBER_PROFILE, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setMemberProfile(data);
+      const data = await getMemberProfile();
+      setMemberProfile(data);
 
-        if (data.membership?.status === "active") {
-          navigate("/memberdashboard");
-        }
+      if (data.membership?.status === "active") {
+        navigate("/memberdashboard");
       }
     } catch (err) {
       console.error(err);
@@ -78,22 +71,16 @@ const Planspage = () => {
     },
   ];
 
-  const handleApplyCoupon = () => {
-    const demoCoupons = {
-      SUMMER25: 25,
-      WELCOME10: 10,
-      FLASH50: 50,
-    };
-
+  const handleApplyCoupon = async () => {
     if (!couponCode.trim()) {
       toast.error("Enter coupon code");
       return;
     }
 
-    const discount = demoCoupons[couponCode.toUpperCase()];
-    if (discount) {
-      setAppliedCoupon({ code: couponCode.toUpperCase(), discount });
-      toast.success(`${discount}% coupon applied`);
+    const coupon = await validateCoupon(couponCode.trim().toUpperCase());
+    if (coupon) {
+      setAppliedCoupon(coupon);
+      toast.success(`${coupon.discount}% coupon applied`);
     } else {
       toast.error("Invalid coupon");
     }
@@ -114,18 +101,8 @@ const Planspage = () => {
       // fake delay (demo payment)
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // activate membership (demo-safe)
-      await fetch(API_ENDPOINTS.MEMBER_ACTIVATE_MEMBERSHIP, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          planName: plan.name,
-          amountPaid: finalPrice,
-        }),
-      });
+      // activate membership (demo - stored in localStorage)
+      await activateMembership(plan.name);
 
       localStorage.setItem("isPaid", "true");
 

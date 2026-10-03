@@ -1,6 +1,14 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Join = () => {
+    const navigate = useNavigate();
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        navigate('/member-signup');
+    };
+
     return (
         <div className="bg-gray-900 py-20 px-4" id="join-us">
             <div className="max-w-7xl mx-auto">
@@ -23,14 +31,14 @@ const Join = () => {
                         </div>
                     </div>
                     <div className="flex justify-center">
-                        <form className="w-full max-w-md bg-gray-800 p-6 rounded-xl shadow-xl">
+                        <form onSubmit={handleSubmit} className="w-full max-w-md bg-gray-800 p-6 rounded-xl shadow-xl">
                             <div className="flex gap-4">
                                 <input
                                     type="email"
                                     placeholder="Enter your email address"
                                     className="flex-1 bg-gray-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                                 />
-                                <button className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg font-semibold hover:from-orange-600 hover:to-red-700 transition-all duration-300 transform hover:-translate-y-1">
+                                <button type="submit" className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg font-semibold hover:from-orange-600 hover:to-red-700 transition-all duration-300 transform hover:-translate-y-1">
                                     Join Now
                                 </button>
                             </div>

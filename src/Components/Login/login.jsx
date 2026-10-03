@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useauthstore } from "../../Store/useauthstore.js";
-import { API_ENDPOINTS } from "../../config.js";
+import { login as demoLogin } from "../../services/mockApi";
 import toast from 'react-hot-toast';
 
 const Login = () => {
@@ -24,38 +24,26 @@ const Login = () => {
         setLoading(true);
 
         try {
-            const response = await fetch(
-  API_ENDPOINTS.LOGIN,
-  {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(formData),
-  }
-);
+            const data = await demoLogin(formData);
 
-            const data = await response.json();
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('userType', formData.role);
+            localStorage.setItem('username', data.username);
+            localStorage.setItem('userId', data._id);
+            if (data.fullName) {
+                localStorage.setItem('trainerName', data.fullName);
+            }
 
-            if (response.ok) {
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('userType', formData.role);
-                localStorage.setItem('username', data.username);
-                localStorage.setItem('userId', data._id);
-                
-                toast.success('Successfully logged in!');
-                
-                if (formData.role === "member") {
-                    navigate("/planspage");
-                } else if (formData.role === "trainer") {
-                    navigate("/trainerdashboard");
-                }
-            } else {
-                toast.error(data.message || 'Invalid credentials');
+            toast.success('Successfully logged in!');
+
+            if (formData.role === "member") {
+                navigate("/planspage");
+            } else if (formData.role === "trainer") {
+                navigate("/trainerdashboard");
             }
         } catch (error) {
             console.error("Error:", error);
-            toast.error('Something went wrong. Please try again.');
+            toast.error(error.message || 'Invalid credentials');
         } finally {
             setLoading(false);
         }

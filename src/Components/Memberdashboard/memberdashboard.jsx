@@ -3,7 +3,18 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { useNavigate } from "react-router-dom";
 import { Star, MessageSquare, Search, Edit2, Trash2, CheckCircle, Filter, Clock, Dumbbell, Activity, CreditCard, Package, X, Users, TrendingUp } from 'lucide-react';
-import { API_ENDPOINTS, API_BASE_URL } from "../../config.js";
+import {
+    getTrainers,
+    getMemberProfile,
+    getWorkoutPlan,
+    getDietPlan,
+    selectTrainer,
+    activateMembership,
+    getEvents,
+    createEvent,
+    updateEvent,
+    deleteEvent
+} from "../../services/mockApi";
 import "./styles.css";
 import ProfileDropdown from "../ProfileDropdown/ProfileDropdown";
 import toast from 'react-hot-toast';
@@ -88,45 +99,14 @@ const MemberDashboard = () => {
             }
         };
 
-        const loadRazorpayScript = () => {
-            return new Promise((resolve) => {
-                const script = document.createElement('script');
-                script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-                script.onload = () => {
-                    resolve(true);
-                };
-                script.onerror = () => {
-                    resolve(false);
-                };
-                document.body.appendChild(script);
-            });
-        };
-
-        const initialize = async () => {
-            const razorpayLoaded = await loadRazorpayScript();
-            if (!razorpayLoaded) {
-                toast.error('Failed to load Razorpay script');
-            }
-        };
-
-        initialize();
-
         fetchData();
     }, [navigate]);
 
     const fetchMemberData = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/members/profile', {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setMemberProfile(data);
-                setCurrentPlan(data.membership);
-            }
+            const data = await getMemberProfile();
+            setMemberProfile(data);
+            setCurrentPlan(data.membership);
         } catch (error) {
             console.error('Error fetching member data:', error);
             toast.error('Failed to load member data');
@@ -137,71 +117,12 @@ const MemberDashboard = () => {
         try {
             setLoading(true);
 
-            const response = await fetch(API_ENDPOINTS.MEMBER_UPDATE_PLAN, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({
-                    planName: plan.name,
-                    amount: plan.price
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to update plan');
-            }
-
-            const { order } = await response.json();
-
-            const options = {
-                key: 'rzp_test_ilZnoyJIDqrWYR',
-                amount: plan.price * 100,
-                currency: "INR",
-                name: "Power Fit",
-                description: `${plan.name} Subscription`,
-                order_id: order.id,
-                handler: async function (response) {
-                    try {
-                        const verifyResponse = await fetch(API_ENDPOINTS.VERIFY_PAYMENT, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${localStorage.getItem('token')}`
-                            },
-                            body: JSON.stringify({
-                                razorpay_payment_id: response.razorpay_payment_id,
-                                razorpay_order_id: response.razorpay_order_id,
-                                razorpay_signature: response.razorpay_signature,
-                                planName: plan.name
-                            })
-                        });
-
-                        if (verifyResponse.ok) {
-                            await fetchMemberData();
-                            setShowPlanModal(false);
-                            toast.success('Plan updated successfully!');
-                        } else {
-                            throw new Error('Payment verification failed');
-                        }
-                    } catch (error) {
-                        console.error('Payment verification error:', error);
-                        toast.error('Payment verification failed');
-                    }
-                },
-                prefill: {
-                    name: memberProfile?.username || '',
-                    email: memberProfile?.email || ''
-                },
-                theme: {
-                    color: "#f97316"
-                }
-            };
-
-            const razorpayInstance = new window.Razorpay(options);
-            razorpayInstance.open();
-
+            // Demo payment - no real payment processing
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+            await activateMembership(plan.name);
+            await fetchMemberData();
+            setShowPlanModal(false);
+            toast.success('Plan updated successfully!');
         } catch (error) {
             console.error('Error updating plan:', error);
             toast.error('Failed to update plan');
@@ -212,13 +133,7 @@ const MemberDashboard = () => {
 
     const fetchTrainers = async () => {
         try {
-            const response = await fetch(API_ENDPOINTS.TRAINERS, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            if (!response.ok) throw new Error('Failed to fetch trainers');
-            const data = await response.json();
+            const data = await getTrainers();
             setTrainers(data);
         } catch (error) {
             console.error('Error fetching trainers:', error);
@@ -228,17 +143,7 @@ const MemberDashboard = () => {
 
     const fetchMemberProfile = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/members/profile', {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch member profile');
-            }
-
-            const data = await response.json();
+            const data = await getMemberProfile();
             setMemberProfile(data);
 
             if (data.assignedTrainer) {
@@ -256,19 +161,8 @@ const MemberDashboard = () => {
 
     const fetchWorkoutPlan = async (memberId) => {
         try {
-            const response = await fetch(API_ENDPOINTS.MEMBER_WORKOUTS(memberId), {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setWorkoutPlan(data);
-            } else if (response.status !== 404) {
-                // Only throw error if it's not a 404 (no plan found)
-                throw new Error('Failed to fetch workout plan');
-            }
+            const data = await getWorkoutPlan(memberId);
+            setWorkoutPlan(data);
         } catch (error) {
             console.error('Error fetching workout plan:', error);
             toast.error('Failed to load workout plan');
@@ -277,19 +171,8 @@ const MemberDashboard = () => {
 
     const fetchDietPlan = async (memberId) => {
         try {
-            const response = await fetch(API_ENDPOINTS.MEMBER_DIET(memberId), {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setDietPlan(data);
-            } else if (response.status !== 404) {
-                // Only throw error if it's not a 404 (no plan found)
-                throw new Error('Failed to fetch diet plan');
-            }
+            const data = await getDietPlan(memberId);
+            setDietPlan(data);
         } catch (error) {
             console.error('Error fetching diet plan:', error);
             toast.error('Failed to load diet plan');
@@ -298,21 +181,9 @@ const MemberDashboard = () => {
 
     const handleSelectTrainer = async (trainer) => {
         try {
-            const response = await fetch(API_ENDPOINTS.MEMBER_SELECT_TRAINER, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({ trainerId: trainer._id })
-            });
-
-            if (response.ok) {
-                setSelectedTrainer(trainer);
-                toast.success('Trainer selected successfully!');
-            } else {
-                toast.error('Failed to select trainer');
-            }
+            await selectTrainer(trainer._id);
+            setSelectedTrainer(trainer);
+            toast.success('Trainer selected successfully!');
         } catch (error) {
             console.error('Error selecting trainer:', error);
             toast.error('Error selecting trainer');
@@ -321,13 +192,7 @@ const MemberDashboard = () => {
 
     const fetchEvents = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/events', {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            if (!response.ok) throw new Error('Failed to fetch events');
-            const data = await response.json();
+            const data = await getEvents();
             setEvents(data.map(event => ({
                 ...event,
                 date: new Date(event.date)
@@ -351,18 +216,10 @@ const MemberDashboard = () => {
         }
 
         try {
-            const response = await fetch('http://localhost:5000/api/events', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({
-                    title: newEvent,
-                    date: date
-                })
+            await createEvent({
+                title: newEvent,
+                date: date
             });
-            if (!response.ok) throw new Error('Failed to create event');
             await fetchEvents();
             setNewEvent("");
         } catch (err) {
@@ -382,18 +239,10 @@ const MemberDashboard = () => {
             }
 
             try {
-                const response = await fetch(`http://localhost:5000/api/events/${event._id}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({
-                        title: newEvent,
-                        date: date
-                    })
+                await updateEvent(event._id, {
+                    title: newEvent,
+                    date: date
                 });
-                if (!response.ok) throw new Error('Failed to update event');
                 await fetchEvents();
                 setNewEvent("");
                 setEditingEvent(null);
@@ -411,13 +260,7 @@ const MemberDashboard = () => {
         if (!window.confirm('Are you sure you want to delete this event?')) return;
 
         try {
-            const response = await fetch(`http://localhost:5000/api/events/${eventId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            if (!response.ok) throw new Error('Failed to delete event');
+            await deleteEvent(eventId);
             await fetchEvents();
         } catch (err) {
             setError(err.message);

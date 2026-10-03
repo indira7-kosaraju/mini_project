@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Users, Calendar, TrendingUp, MessageSquare, Award, Search, Plus, Edit2, X } from 'lucide-react';
-import { API_ENDPOINTS, API_BASE_URL } from "../../config.js";
+import { getTrainerMembers, getWorkoutPlan, getDietPlan, saveWorkoutPlan, saveDietPlan } from "../../services/mockApi";
 import ProfileDropdown from "../ProfileDropdown/ProfileDropdown";
 import toast from 'react-hot-toast';
 
@@ -60,13 +60,7 @@ const Trainerdashboard = () => {
 
     const fetchMembers = async () => {
         try {
-            const response = await fetch(API_ENDPOINTS.TRAINER_MEMBERS, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            if (!response.ok) throw new Error('Failed to fetch members');
-            const data = await response.json();
+            const data = await getTrainerMembers();
             setMembers(data);
         } catch (err) {
             setError(err.message);
@@ -78,25 +72,15 @@ const Trainerdashboard = () => {
     const fetchCurrentPlans = async (memberId) => {
         try {
             // Fetch current workout plan
-            const workoutResponse = await fetch(API_ENDPOINTS.MEMBER_WORKOUTS(memberId), {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            if (workoutResponse.ok) {
-                const workoutData = await workoutResponse.json();
+            const workoutData = await getWorkoutPlan(memberId);
+            if (workoutData) {
                 setCurrentWorkoutPlan(workoutData);
                 setWorkoutPlan(workoutData); // Set for editing
             }
 
             // Fetch current diet plan
-            const dietResponse = await fetch(API_ENDPOINTS.MEMBER_DIET(memberId), {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            if (dietResponse.ok) {
-                const dietData = await dietResponse.json();
+            const dietData = await getDietPlan(memberId);
+            if (dietData) {
                 setCurrentDietPlan(dietData);
                 setDietPlan(dietData); // Set for editing
             }
@@ -181,31 +165,10 @@ const Trainerdashboard = () => {
 
     const handleSubmitWorkoutPlan = async () => {
         try {
-            const url = isEditing 
-                ? `${API_BASE_URL}/api/workout-plans/${currentWorkoutPlan._id}`
-                : `${API_BASE_URL}/api/workout-plans`;
-            
-            const method = isEditing ? 'PUT' : 'POST';
-            
-            const response = await fetch(url, {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({
-                    memberId: selectedMember._id,
-                    weeklyPlan: workoutPlan.weeklyPlan
-                })
-            });
-
-            if (response.ok) {
-                toast.success(isEditing ? 'Workout plan updated successfully!' : 'Workout plan created successfully!');
-                setShowWorkoutForm(false);
-                setIsEditing(false);
-            } else {
-                toast.error(isEditing ? 'Failed to update workout plan' : 'Failed to create workout plan');
-            }
+            await saveWorkoutPlan(selectedMember._id, workoutPlan.weeklyPlan);
+            toast.success(isEditing ? 'Workout plan updated successfully!' : 'Workout plan created successfully!');
+            setShowWorkoutForm(false);
+            setIsEditing(false);
         } catch (error) {
             console.error('Error with workout plan:', error);
             toast.error('Error with workout plan');
@@ -214,31 +177,10 @@ const Trainerdashboard = () => {
 
     const handleSubmitDietPlan = async () => {
         try {
-            const url = isEditing 
-                ? `${API_BASE_URL}/api/diet-plans/${currentDietPlan._id}`
-                : `${API_BASE_URL}/api/diet-plans`;
-            
-            const method = isEditing ? 'PUT' : 'POST';
-
-            const response = await fetch(url, {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({
-                    memberId: selectedMember._id,
-                    weeklyPlan: dietPlan.weeklyPlan
-                })
-            });
-
-            if (response.ok) {
-                toast.success(isEditing ? 'Diet plan updated successfully!' : 'Diet plan created successfully!');
-                setShowDietForm(false);
-                setIsEditing(false);
-            } else {
-                toast.error(isEditing ? 'Failed to update diet plan' : 'Failed to create diet plan');
-            }
+            await saveDietPlan(selectedMember._id, dietPlan.weeklyPlan);
+            toast.success(isEditing ? 'Diet plan updated successfully!' : 'Diet plan created successfully!');
+            setShowDietForm(false);
+            setIsEditing(false);
         } catch (error) {
             console.error('Error with diet plan:', error);
             toast.error('Error with diet plan');

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { login as demoLogin } from '../services/mockApi';
 
 export const useauthstore = create((set) => ({
     authuser: localStorage.getItem('username'),
@@ -6,20 +7,10 @@ export const useauthstore = create((set) => ({
     login: async (formData) => {
         set({ isLoggingIn: true });
         try {
-            const response = await fetch("http://localhost:5000/api/users/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(formData),
-            });
+            const data = await demoLogin(formData);
 
-            const data = await response.json();
-
-            if (response.ok) {
-                localStorage.setItem('username', data.username);
-                set({ authuser: data.username });
-            }
+            localStorage.setItem('username', data.username);
+            set({ authuser: data.username });
 
             return data;
         } catch (error) {
@@ -34,6 +25,7 @@ export const useauthstore = create((set) => ({
         localStorage.removeItem('username');
         localStorage.removeItem('userType');
         localStorage.removeItem('userId');
+        localStorage.removeItem('trainerName');
         set({ authuser: null });
     }
 }));
